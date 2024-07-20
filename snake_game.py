@@ -116,7 +116,7 @@ def gameloop():
                 food_y = random.randint(20,screen_height/2)
                 pygame.mixer.music.load('snake/bonus.wav')
                 pygame.mixer.music.play()
-                snk_len += 5
+                snk_len += 10
                 if score > int(highscore):
                     highscore = score
 
