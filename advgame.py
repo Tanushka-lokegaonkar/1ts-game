@@ -2,20 +2,16 @@ import pygame
 import random
 import sys
 
+pygame.mixer.init()
 pygame.init()
 
 screen_width=1000
 screen_height=600
 
-score = 0
-player_lives = 3
-font = pygame.font.Font(None,36)
-game_over_font = pygame.font.Font(None,64)
-
-background_image = pygame.image.load("plane/BG.png")
+background_image = pygame.image.load("plane/BG2.png")
 background_image = pygame.transform.scale(background_image,(screen_width,screen_height))
-bg_x = 0
-speed_increase_rate = 0
+background_image1 = pygame.image.load("plane/BG1.png")
+background_image1 = pygame.transform.scale(background_image1,(screen_width,screen_height))
 screen=pygame.display.set_mode((screen_width,screen_height))
 pygame.display.set_caption("Fighter Plane")
 
@@ -123,91 +119,115 @@ class Bullet:
     def off_screen(self):
         return(self.x<=0 or self.x>=screen_width)
 
-player = Character(100,386)
-running=True
 clock=pygame.time.Clock()
 
-last_enemy_spawn_time = pygame.time.get_ticks()
-
-while running:
-    score+=1
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                player.is_jump = True
-            if event.key == pygame.K_RIGHT:
-                player.shoot()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_DOWN:
-                player.is_duck = True
-            if event.key == pygame.K_RIGHT:
-                player.shoot()
-
-    bg_x-=(10+speed_increase_rate)
-    speed_increase_rate+=0.006
-    if bg_x < -screen_width:
-        bg_x = 0
-    screen.blit(background_image,(bg_x,0))
-    screen.blit(background_image,(screen_width+bg_x,0))
-
-    current_time = pygame.time.get_ticks()
-    if current_time - last_enemy_spawn_time >= 3000:
-        if random.randint(0,100)<3:
-            enemy_x1 = screen_width + 900
-            enemy_y1 = random.randint(200,400)
-            enemy1 = Enemy(enemy_x1,enemy_y1)
-            enemy_x2 = enemy_x1 + 800
-            enemy_y2 = random.randint(200,400)
-            enemy2 = Enemy(enemy_x2,enemy_y2)
-            enemies.append(enemy2)
-            enemies.append(enemy1)
-            last_enemy_spawn_time = current_time
-
-    for enemy in enemies:
-        enemy.x -= (15 + speed_increase_rate)
-        enemy.draw()
-        enemy.run_animation_enemy()
-
-        if enemy.rect.colliderect(player.rect):  #collision1
-            speed_increasing_rate = 0
-            player_lives-=1
-            enemies.remove(enemy)
-        
-        for bullet in player_bullets:              #collision2
-            if pygame.Rect.colliderect(enemy.rect,bullet.rect):
-                player_bullets.remove(bullet)
-                enemies.remove(enemy)
-                score+=10
-
-    for bullet in player_bullets:
-        if(bullet.off_screen()):
-            player_bullets.remove(bullet)
-        else:
-            bullet.draw()
-            bullet.move(10)
-
-    if player_lives <= 0:
-        game_over_text = game_over_font.render("Game over",True,(255,255,255))
-        screen.blit(game_over_text,(screen_width//2 -120,screen_height//2))
+def welcome():
+    running=True
+    while running:
+        screen.blit(background_image1, (0,0))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                gameloop()
         pygame.display.update()
-        pygame.time.wait(2000)
-        pygame.quit()
-        sys.exit()
+        clock.tick(60)
 
-    live_text = font.render(f"Lives:{player_lives}",True,(0,0,0))
-    screen.blit(live_text,(screen_width-120,10))
-    score_text = font.render(f"Score:{score}",True,(0,0,0))
-    screen.blit(score_text,(20,10))
+def gameloop():
+    score = 0
+    player_lives = 3
+    bg_x = 0
+    speed_increase_rate = 0
+    player = Character(100,386)
+    last_enemy_spawn_time = pygame.time.get_ticks()
+    font = pygame.font.Font(None,36)
+    game_over_font = pygame.font.Font(None,64)
+    running=True
+    while running:
+        score+=1
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    player.is_jump = True
+                if event.key == pygame.K_RIGHT:
+                    player.shoot()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    player.is_duck = True
+                if event.key == pygame.K_RIGHT:
+                    player.shoot()
 
-    if player.is_jump:
-        player.jump()
-    if player.is_duck:
-        player.duck()
-    player.draw()
-    player.run_animation_player()
-    pygame.display.update()               
-    clock.tick(30)                        
+        bg_x-=(10+speed_increase_rate)
+        speed_increase_rate+=0.006
+        if bg_x < -screen_width:
+            bg_x = 0
+        screen.blit(background_image,(bg_x,0))
+        screen.blit(background_image,(screen_width+bg_x,0))
 
-pygame.quit()
+        current_time = pygame.time.get_ticks()
+        if current_time - last_enemy_spawn_time >= 3000:
+            if random.randint(0,100)<3:
+                enemy_x1 = screen_width + 900
+                enemy_y1 = random.randint(200,400)
+                enemy1 = Enemy(enemy_x1,enemy_y1)
+                enemy_x2 = enemy_x1 + 800
+                enemy_y2 = random.randint(200,400)
+                enemy2 = Enemy(enemy_x2,enemy_y2)
+                enemies.append(enemy2)
+                enemies.append(enemy1)
+                last_enemy_spawn_time = current_time
+
+        for enemy in enemies:
+            enemy.x -= (15 + speed_increase_rate)
+            enemy.draw()
+            enemy.run_animation_enemy()
+
+            if enemy.rect.colliderect(player.rect):  #collision1
+                pygame.mixer.music.load('plane/hit.wav')
+                pygame.mixer.music.play()
+                speed_increasing_rate = 0
+                player_lives-=1
+                enemies.remove(enemy)
+            
+            for bullet in player_bullets:              #collision2
+                if pygame.Rect.colliderect(enemy.rect,bullet.rect):
+                    pygame.mixer.music.load('plane/hit.wav')
+                    pygame.mixer.music.play()
+                    player_bullets.remove(bullet)
+                    enemies.remove(enemy)
+                    score+=10
+
+        for bullet in player_bullets:
+            if(bullet.off_screen()):
+                player_bullets.remove(bullet)
+            else:
+                bullet.draw()
+                bullet.move(10)
+
+        if player_lives <= 0:
+            game_over_text = game_over_font.render("Game over",True,(255,255,255))
+            screen.blit(game_over_text,(screen_width//2 -120,screen_height//2))
+            pygame.display.update()
+            pygame.time.wait(2000)
+            pygame.quit()
+            sys.exit()
+
+        live_text = font.render(f"Lives:{player_lives}",True,(255,255,255))
+        screen.blit(live_text,(screen_width-120,10))
+        score_text = font.render(f"Score:{score}",True,(255,255,255))
+        screen.blit(score_text,(20,10))
+
+        if player.is_jump:
+            player.jump()
+        if player.is_duck:
+            player.duck()
+        player.draw()
+        player.run_animation_player()
+        pygame.display.update()               
+        clock.tick(30)                        
+
+    pygame.quit()
+    quit()
+welcome()
